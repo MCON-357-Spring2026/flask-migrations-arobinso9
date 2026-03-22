@@ -64,7 +64,10 @@ def create_assignment():
     if not title or max_score is None:
         return jsonify({"error": "title and max_score are required"}), 400
 
-    due_date = date.fromisoformat(due_date_str) if due_date_str else None
+    try:
+        due_date = date.fromisoformat(due_date_str) if due_date_str else None
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
 
     assignment = Assignment(title=title, max_score=max_score, due_date=due_date)
 
@@ -91,8 +94,8 @@ def create_grade():
     if score is None or student_id is None or assignment_id is None:
         return jsonify({"error": "score, student_id, and assignment_id are required"}), 400
 
-    student = Student.query.get(student_id)
-    assignment = Assignment.query.get(assignment_id)
+    student = db.session.get(Student, student_id)
+    assignment = db.session.get(Assignment, assignment_id)
 
     if student is None:
         return jsonify({"error": "student not found"}), 404
